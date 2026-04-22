@@ -35,26 +35,28 @@ def ingest_data():
     logger.info("Ingestion completed successfully")
 
 
+DBT_EXECUTABLE = r"C:\Users\Darvin\miniconda3\envs\health-pipeline\Scripts\dbt.EXE"
+
 @task(name="run_dbt", retries=1, retry_delay_seconds=10)
 def run_dbt():
     """Run dbt models: raw → staging → consumption."""
     logger = get_run_logger()
-    logger.info("Running dbt models...")
+    logger.info(f"Running dbt from: {DBT_DIR}")
 
     result = subprocess.run(
-        ["dbt", "run"],
+        [DBT_EXECUTABLE, "run"],
         capture_output=True,
         text=True,
         cwd=DBT_DIR
     )
 
+    logger.info(f"stdout: {result.stdout}")
+    logger.info(f"stderr: {result.stderr}")
+
     if result.returncode != 0:
-        logger.error(result.stderr)
         raise Exception(f"dbt run failed: {result.stderr}")
 
-    logger.info(result.stdout)
     logger.info("dbt models completed successfully")
-
 
 @task(name="run_dbt_tests", retries=1, retry_delay_seconds=10)
 def run_dbt_tests():
@@ -63,13 +65,13 @@ def run_dbt_tests():
     logger.info("Running dbt tests...")
 
     result = subprocess.run(
-        ["dbt", "test"],
+        [DBT_EXECUTABLE, "test"],
         capture_output=True,
         text=True,
         cwd=DBT_DIR
     )
 
-    logger.info(result.stdout)
+    logger.info(f"stdout: {result.stdout}")
 
     if result.returncode != 0:
         logger.warning("Some dbt tests failed — check the test report")
