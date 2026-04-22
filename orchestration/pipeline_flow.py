@@ -1,8 +1,12 @@
 import subprocess
+import sys
 from pathlib import Path
 from prefect import flow, task
 from prefect.logging import get_run_logger
 
+# Install dependencies before anything else
+subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", 
+    str(Path(__file__).parent.parent / "requirements.txt")])
 # Paths
 ROOT_DIR = Path(__file__).parent.parent
 DBT_DIR = ROOT_DIR / "dbt_project" / "health_pipeline"
