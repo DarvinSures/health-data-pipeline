@@ -7,4 +7,5 @@ dbt-postgres
 prefect
 python-dotenv
 great-expectations
-gspread google-auth
+gspread 
+google-auth
