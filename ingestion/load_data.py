@@ -229,6 +229,8 @@ def run_pipeline():
     engine = get_db_engine()
     load_to_landing(df, engine, sheet_id)
 
+    logger.info("About to call load_to_raw...")  # debug line
+
     # Load to raw (typed + cleaned)
     load_to_raw(engine)
 

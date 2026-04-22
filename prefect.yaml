@@ -1,0 +1,28 @@
+---
+name: health-data-pipeline
+prefect-version: 3.6.27
+
+build: null
+push: null
+
+pull:
+- prefect.deployments.steps.git_clone:
+    repository: https://github.com/DarvinSures/health-data-pipeline.git
+    branch: main
+    access_token: null
+
+deployments:
+- name: health-pipeline-deployment
+  version: null
+  tags: []
+  description: "Weekly health data pipeline - Google Sheet to FHIR"
+  entrypoint: orchestration/pipeline_flow.py:health_pipeline
+  parameters: {}
+  schedules:
+  - cron: "0 6 * * 1"
+    timezone: UTC
+    active: true
+  work_pool:
+    name: default-agent-pool
+    work_queue_name: null
+    job_variables: {}
