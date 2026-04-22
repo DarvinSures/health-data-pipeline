@@ -1,0 +1,29 @@
+version: 2
+
+sources:
+  - name: raw
+    database: health_db
+    schema: raw
+    tables:
+      - name: raw_patient
+        description: "Raw patient data loaded from CSV"
+        columns:
+          - name: id
+            description: "Primary key"
+            tests:
+              - unique
+              - not_null
+          - name: first_name
+            tests:
+              - not_null
+          - name: last_name
+            tests:
+              - not_null
+          - name: birth_date
+            tests:
+              - not_null
+          - name: gender
+            tests:
+              - not_null
+              - accepted_values:
+                  values: ['male', 'female', 'other', 'unknown']

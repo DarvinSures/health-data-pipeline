@@ -1,0 +1,23 @@
+name: 'health_pipeline'
+version: '1.0.0'
+config-version: 2
+
+profile: 'health_pipeline'
+
+model-paths: ["models"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+
+on-run-start:
+  - "{{ create_raw_schema() }}"
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  health_pipeline:
+    staging:
+      +materialized: view
+    consumption:
+      +materialized: table

@@ -1,0 +1,10 @@
+google-cloud-storage
+psycopg2-binary
+sqlalchemy
+pandas
+dbt-core
+dbt-postgres
+prefect
+python-dotenv
+great-expectations
+gspread google-auth
