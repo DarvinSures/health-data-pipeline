@@ -1,7 +1,16 @@
-{% macro create_raw_schema() %}
+{% macro create_schemas() %}
     {% set sql %}
+        CREATE SCHEMA IF NOT EXISTS landing;
         CREATE SCHEMA IF NOT EXISTS raw;
-        
+        CREATE SCHEMA IF NOT EXISTS staging;
+        CREATE SCHEMA IF NOT EXISTS consumption;
+
+        CREATE TABLE IF NOT EXISTS landing.raw_patient (
+            _loaded_at      TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+            _source_sheet_id VARCHAR(255),
+            _raw_data        JSONB
+        );
+
         CREATE TABLE IF NOT EXISTS raw.raw_patient (
             id SERIAL PRIMARY KEY,
             first_name VARCHAR(100),
@@ -16,7 +25,7 @@
             email VARCHAR(100),
             emergency_contact_name VARCHAR(200),
             emergency_contact_phone VARCHAR(20),
-            blood_type VARCHAR(10),
+            blood_type VARCHAR(5),
             insurance_provider VARCHAR(100),
             insurance_number VARCHAR(50),
             marital_status VARCHAR(20),
@@ -28,7 +37,7 @@
             updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
         );
     {% endset %}
-    
+
     {% do run_query(sql) %}
-    {% do log("Raw schema and table created successfully", info=True) %}
+    {% do log("All schemas created successfully", info=True) %}
 {% endmacro %}

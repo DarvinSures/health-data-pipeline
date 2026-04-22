@@ -2,6 +2,7 @@ import gspread
 import pandas as pd
 from google.oauth2.service_account import Credentials
 from sqlalchemy import create_engine, text
+from datetime import datetime, timezone
 from dotenv import load_dotenv
 import os
 import logging
@@ -22,24 +23,24 @@ SCOPES = [
     'https://www.googleapis.com/auth/drive'
 ]
 
-def get_google_sheet(sheet_name: str) -> pd.DataFrame:
-    """Extract data from Google Sheet and return as DataFrame."""
+def get_google_sheet(sheet_name: str):
+    """Extract data from Google Sheet and return as DataFrame and sheet ID."""
     try:
         logger.info(f"Connecting to Google Sheet: {sheet_name}")
-        
+
         creds = Credentials.from_service_account_file(
             os.getenv('GCP_SERVICE_ACCOUNT_PATH'),
             scopes=SCOPES
         )
-        
+
         client = gspread.authorize(creds)
-        sheet = client.open(sheet_name).sheet1
-        data = sheet.get_all_records()
-        
-        df = pd.DataFrame(data)
+        spreadsheet = client.open(sheet_name)
+        sheet_id = spreadsheet.id
+        df = pd.DataFrame(spreadsheet.sheet1.get_all_records())
+
         logger.info(f"Successfully extracted {len(df)} rows from Google Sheet")
-        return df
-        
+        return df, sheet_id
+
     except Exception as e:
         logger.error(f"Failed to extract data from Google Sheet: {e}")
         raise
@@ -92,44 +93,110 @@ def validate_dataframe(df: pd.DataFrame) -> bool:
     
     return checks_passed
 
-def load_to_postgres(df: pd.DataFrame, engine) -> None:
-    """Load DataFrame into raw.raw_patient table."""
+def load_to_landing(df: pd.DataFrame, engine, sheet_id: str) -> None:
+    """Load raw Google Sheet data into landing as JSONB rows."""
     try:
-        logger.info("Loading data to raw.raw_patient...")
-        
-        # Drop dependent view and alter column type if needed
+        logger.info("Loading data to landing.raw_patient...")
+
+        import json
+        from datetime import datetime, timezone
+
+        rows = []
+        loaded_at = datetime.now(timezone.utc)
+
+        for _, row in df.iterrows():
+            rows.append({
+                '_loaded_at': loaded_at,
+                '_source_sheet_id': sheet_id,
+                '_raw_data': json.dumps(row.to_dict())
+            })
+
+        landing_df = pd.DataFrame(rows)
+
         with engine.connect() as conn:
-            conn.execute(text("DROP VIEW IF EXISTS raw.stg_patient"))
-            conn.execute(text("ALTER TABLE raw.raw_patient ALTER COLUMN blood_type TYPE VARCHAR(10)"))
+            conn.execute(text("TRUNCATE TABLE landing.raw_patient"))
             conn.commit()
-        
-        # Truncate first to avoid duplicates, then append
-        with engine.connect() as conn:
-            conn.execute(text("TRUNCATE TABLE raw.raw_patient RESTART IDENTITY"))
-            conn.commit()
-        
-        df.to_sql(
+
+        landing_df.to_sql(
             name='raw_patient',
             con=engine,
-            schema='raw',
+            schema='landing',
             if_exists='append',
             index=False
         )
-        
-        # Post-load row count check
+
+        logger.info(f"Successfully loaded {len(landing_df)} rows into landing.raw_patient")
+
+    except Exception as e:
+        logger.error(f"Failed to load data to landing: {e}")
+        raise
+
+
+def load_to_raw(engine) -> None:
+    """Extract from landing JSONB and load into raw with proper types."""
+    try:
+        logger.info("Transforming landing data into raw.raw_patient...")
+
+        sql = text("""
+            INSERT INTO raw.raw_patient (
+                first_name, last_name, birth_date, gender, address,
+                city, state, zip_code, phone_number, email,
+                emergency_contact_name, emergency_contact_phone,
+                blood_type, insurance_provider, insurance_number,
+                marital_status, preferred_language, nationality,
+                allergies, last_visit_date
+            )
+            SELECT
+                NULLIF(TRIM(_raw_data->>'first_name'), ''),
+                NULLIF(TRIM(_raw_data->>'last_name'), ''),
+                CASE WHEN TRIM(_raw_data->>'birth_date') IN ('', 'None', 'NaT') THEN NULL
+                     ELSE TRIM(_raw_data->>'birth_date')::date END,
+                NULLIF(TRIM(_raw_data->>'gender'), ''),
+                NULLIF(TRIM(_raw_data->>'address'), ''),
+                NULLIF(TRIM(_raw_data->>'city'), ''),
+                NULLIF(TRIM(_raw_data->>'state'), ''),
+                NULLIF(TRIM(_raw_data->>'zip_code'), ''),
+                NULLIF(TRIM(_raw_data->>'phone_number'), ''),
+                NULLIF(TRIM(_raw_data->>'email'), ''),
+                NULLIF(TRIM(_raw_data->>'emergency_contact_name'), ''),
+                NULLIF(TRIM(_raw_data->>'emergency_contact_phone'), ''),
+                NULLIF(TRIM(_raw_data->>'blood_type'), ''),
+                NULLIF(TRIM(_raw_data->>'insurance_provider'), ''),
+                NULLIF(TRIM(_raw_data->>'insurance_number'), ''),
+                NULLIF(TRIM(_raw_data->>'marital_status'), ''),
+                NULLIF(TRIM(_raw_data->>'preferred_language'), ''),
+                NULLIF(TRIM(_raw_data->>'nationality'), ''),
+                NULLIF(TRIM(_raw_data->>'allergies'), ''),
+                CASE WHEN TRIM(_raw_data->>'last_visit_date') IN ('', 'None', 'NaT') THEN NULL
+                     ELSE TRIM(_raw_data->>'last_visit_date')::date END
+            FROM landing.raw_patient
+        """)
+
         with engine.connect() as conn:
+            conn.execute(text("TRUNCATE TABLE raw.raw_patient RESTART IDENTITY"))
+            conn.execute(sql)
+            conn.commit()
+
             result = conn.execute(text("SELECT COUNT(*) FROM raw.raw_patient"))
             row_count = result.scalar()
-            
+
         logger.info(f"Successfully loaded {row_count} rows into raw.raw_patient")
-        
-        if row_count != len(df):
-            logger.error(f"Row count mismatch: expected {len(df)}, got {row_count}")
-            raise ValueError("Row count mismatch after load")
-            
+
     except Exception as e:
-        logger.error(f"Failed to load data to Postgres: {e}")
+        logger.error(f"Failed to load data to raw: {e}")
         raise
+
+
+def table_exists(conn, schema: str, table: str) -> bool:
+    """Check if a table exists in the given schema."""
+    result = conn.execute(text(f"""
+        SELECT EXISTS (
+            SELECT 1 FROM information_schema.tables
+            WHERE table_schema = '{schema}'
+            AND table_name = '{table}'
+        )
+    """))
+    return result.scalar()
 
 def clean_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     """Clean and prepare DataFrame for loading."""
@@ -150,21 +217,21 @@ def clean_dataframe(df: pd.DataFrame) -> pd.DataFrame:
 def run_pipeline():
     """Main pipeline function."""
     logger.info("Starting ingestion pipeline...")
-    
+
     # Extract
-    df = get_google_sheet(os.getenv('GOOGLE_SHEET_NAME'))
-    
+    df, sheet_id = get_google_sheet(os.getenv('GOOGLE_SHEET_NAME'))
+
     # Validate
     if not validate_dataframe(df):
         raise ValueError("Pre-load validation failed, aborting pipeline")
-    
-    # Clean
-    df = clean_dataframe(df)
-    
-    # Load
+
+    # Load to landing (exact copy)
     engine = get_db_engine()
-    load_to_postgres(df, engine)
-    
+    load_to_landing(df, engine, sheet_id)
+
+    # Load to raw (typed + cleaned)
+    load_to_raw(engine)
+
     logger.info("Ingestion pipeline completed successfully")
 
 if __name__ == "__main__":

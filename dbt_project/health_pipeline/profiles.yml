@@ -8,5 +8,5 @@ health_pipeline:
       user: admin
       password: admin123
       dbname: health_db
-      schema: raw
+      schema: public
       threads: 4

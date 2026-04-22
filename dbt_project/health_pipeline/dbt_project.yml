@@ -9,7 +9,7 @@ test-paths: ["tests"]
 macro-paths: ["macros"]
 
 on-run-start:
-  - "{{ create_raw_schema() }}"
+  - "{{ create_schemas() }}"
 
 clean-targets:
   - "target"
@@ -19,5 +19,7 @@ models:
   health_pipeline:
     staging:
       +materialized: view
+      +schema: staging
     consumption:
       +materialized: table
+      +schema: consumption
