@@ -9,7 +9,10 @@ pull:
 - prefect.deployments.steps.git_clone:
     repository: https://github.com/DarvinSures/health-data-pipeline.git
     branch: main
-    access_token: null
+    access_token: "your_token_here"
+- prefect.deployments.steps.run_shell_script:
+    script: pip install -r requirements.txt
+    stream_output: true
 
 deployments:
 - name: health-pipeline-deployment

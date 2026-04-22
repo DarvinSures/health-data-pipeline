@@ -7,3 +7,4 @@ dbt_project/logs/
 __pycache__/
 *.pyc
 .DS_Store
+prefect.yaml
