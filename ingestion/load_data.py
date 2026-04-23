@@ -54,43 +54,82 @@ def get_db_engine():
     return create_engine(db_url)
 
 def validate_dataframe(df: pd.DataFrame) -> bool:
-    """Run pre-load validation checks on the DataFrame."""
-    logger.info("Running pre-load validation checks...")
-    
+    """Run FHIR-aligned pre-load validation checks."""
+    logger.info("Running FHIR pre-load validation checks...")
+
     checks_passed = True
-    
+
     # Check 1 — dataframe is not empty
     if df.empty:
         logger.error("FAILED: DataFrame is empty")
         checks_passed = False
     else:
         logger.info(f"PASSED: DataFrame has {len(df)} rows")
-    
-    # Check 2 — required columns exist
+
+    # Check 2 — required FHIR fields exist
     required_columns = [
-        'first_name', 'last_name', 'birth_date', 
+        'first_name', 'last_name', 'birth_date',
         'gender', 'email', 'phone_number'
     ]
     missing_columns = [col for col in required_columns if col not in df.columns]
     if missing_columns:
-        logger.error(f"FAILED: Missing required columns: {missing_columns}")
+        logger.error(f"FAILED: Missing required FHIR columns: {missing_columns}")
         checks_passed = False
     else:
-        logger.info("PASSED: All required columns present")
-    
+        logger.info("PASSED: All required FHIR columns present")
+
     # Check 3 — no nulls in critical fields
     null_counts = df[required_columns].isnull().sum()
     if null_counts.any():
         logger.warning(f"WARNING: Null values found: {null_counts[null_counts > 0]}")
     else:
-        logger.info("PASSED: No nulls in critical fields")
-    
-    # Check 4 — no duplicate emails
-    if df['email'].duplicated().any():
-        logger.warning(f"WARNING: {df['email'].duplicated().sum()} duplicate emails found")
+        logger.info("PASSED: No nulls in critical FHIR fields")
+
+    # Check 4 — FHIR gender values
+    valid_genders = ['male', 'female', 'other', 'unknown']
+    if 'gender' in df.columns:
+        invalid_genders = df[~df['gender'].str.lower().isin(valid_genders)]['gender'].unique()
+        if len(invalid_genders) > 0:
+            logger.warning(f"WARNING: Invalid FHIR gender values found: {invalid_genders}")
+        else:
+            logger.info("PASSED: All gender values are FHIR compliant")
+
+    # Check 5 — birth date not in future
+    if 'birth_date' in df.columns:
+        df['birth_date'] = pd.to_datetime(df['birth_date'], errors='coerce')
+        future_dates = df[df['birth_date'] > pd.Timestamp.now()]
+        if len(future_dates) > 0:
+            logger.error(f"FAILED: {len(future_dates)} birth dates are in the future")
+            checks_passed = False
+        else:
+            logger.info("PASSED: All birth dates are valid")
+
+    # Check 6 — no duplicate emails
+    if 'email' in df.columns:
+        duplicates = df['email'].duplicated().sum()
+        if duplicates > 0:
+            logger.warning(f"WARNING: {duplicates} duplicate emails found")
+        else:
+            logger.info("PASSED: No duplicate emails")
+
+    # Check 7 — FHIR marital status values
+    valid_marital = ['married', 'single', 'divorced', 'widowed', 'unknown']
+    if 'marital_status' in df.columns:
+        invalid_marital = df[
+            df['marital_status'].str.lower().isin(valid_marital) == False
+        ]['marital_status'].unique()
+        if len(invalid_marital) > 0:
+            logger.warning(f"WARNING: Non-standard FHIR marital status values: {invalid_marital}")
+        else:
+            logger.info("PASSED: All marital status values are FHIR compliant")
+
+    # Check 8 — telecom fields present
+    if 'phone_number' not in df.columns or 'email' not in df.columns:
+        logger.error("FAILED: Missing FHIR telecom fields (phone_number or email)")
+        checks_passed = False
     else:
-        logger.info("PASSED: No duplicate emails")
-    
+        logger.info("PASSED: FHIR telecom fields present")
+
     return checks_passed
 
 def load_to_landing(df: pd.DataFrame, engine, sheet_id: str) -> None:

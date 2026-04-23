@@ -21,6 +21,15 @@ fhir as (
         -- address masked
         '****'                                          as address,
 
+        -- telecom as JSON with hashed values
+        json_build_object(
+            'phone', phone_hash,
+            'email', email_hash
+        )                                               as telecom,
+
+        -- hashed insurance number
+        insurance_number_hash                           as insurance_number,
+
         -- additional fields
         blood_type,
         allergies,
