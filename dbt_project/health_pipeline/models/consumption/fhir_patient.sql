@@ -1,42 +1,42 @@
-with staged as (
-    select * from {{ ref('stg_patient') }}
+WITH staged AS (
+    SELECT * FROM {{ ref('stg_patient') }}
 ),
 
-fhir as (
-    select
+fhir AS (
+    SELECT
         -- unique patient ID
-        patient_id                                      as id,
+        patient_id AS id,
 
         -- full name masked
-        '****'                                          as full_name,
+        '****' AS full_name,
 
         -- birth date generalised to year only
-        birth_year                                      as birth_date,
+        birth_year AS birth_date,
 
         -- standard fields
         gender,
         nationality,
-        lower(trim(marital_status))                     as marital_status,
+        '****' AS address,
 
         -- address masked
-        '****'                                          as address,
+        insurance_number_hash AS insurance_number,
 
         -- telecom as JSON with hashed values
+        blood_type,
+
+        -- hashed insurance number
+        allergies,
+
+        -- additional fields
+        last_visit_date,
+        created_at,
+        lower(trim(marital_status)) AS marital_status,
         json_build_object(
             'phone', phone_hash,
             'email', email_hash
-        )                                               as telecom,
+        ) AS telecom
 
-        -- hashed insurance number
-        insurance_number_hash                           as insurance_number,
-
-        -- additional fields
-        blood_type,
-        allergies,
-        last_visit_date,
-        created_at
-
-    from staged
+    FROM staged
 )
 
-select * from fhir
+SELECT * FROM fhir
