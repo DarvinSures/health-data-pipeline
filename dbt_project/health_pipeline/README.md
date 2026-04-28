@@ -349,7 +349,7 @@ Check FHIR output:
 ```sql
 SELECT id, full_name, gender, telecom, nationality
 FROM consumption.fhir_patient
-LIMIT 5;
+LIMIT 5; 
 ```
 
 ---
