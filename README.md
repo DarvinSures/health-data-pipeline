@@ -4,10 +4,12 @@ A production-grade ELT pipeline that ingests patient data from Google Sheets, tr
 
 ---
 
+The raw data for this project is available in this [Google Sheets file](https://docs.google.com/spreadsheets/d/1zZA8j-MR3osXR9-jgz9q-m3_sdrFDi72B4d3BBMTfrs/edit?usp=sharing), where the original CSV has been uploaded.
+
 ## Architecture
 
 ```
-Google Sheets: Raw Patient Data CSV [https://docs.google.com/spreadsheets/d/1zZA8j-MR3osXR9-jgz9q-m3_sdrFDi72B4d3BBMTfrs/edit?usp=sharing)
+Google Sheets: Raw Patient Data CSV 
      │
      ▼
 ┌─────────────────────────────────────────────────────┐
