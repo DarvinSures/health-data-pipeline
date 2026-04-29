@@ -314,11 +314,9 @@ This single command:
 
 ---
 
-## Running the Pipeline
+## Running the Pipeline, either run full pipeline or run individual steps
 
-### Option to run full pipeline or run individual steps
-
-### Run the full pipeline
+### 1) Run the full pipeline
 
 ```bash
 python orchestration/pipeline_flow.py
@@ -331,7 +329,7 @@ This runs all steps in order:
 4. dbt run → `uat.uat_patient` → `consumption.consumption_fhir_patient`
 5. dbt test → FHIR R4 data quality checks
 
-### Run individual steps
+### 2) Run individual steps
 
 **Ingestion only:**
 ```bash
@@ -356,11 +354,11 @@ cd dbt_project/health_pipeline
 dbt test --target dev
 ```
 
-**View lineage and documentation:**
+**View lineage and documentation:** (opens a local html page for lineage view)
 ```bash
 cd dbt_project/health_pipeline
 dbt docs generate
-dbt docs serve
+dbt docs serve 
 ```
 
 ---
