@@ -415,5 +415,7 @@ This project is designed with production-grade patterns. For a full production d
 | Data observability | dbt tests | Elementary Data / Monte Carlo |
 | CI/CD | Manual deploy | GitHub Actions/DataOps |
 | Data access control | Column masking + hashing | Immuta / AWS Lake Formation |
+| Pre-commit checks | None | SQLFluff + yamllint + dbt-bouncer |
+| Unit testing | None | pytest for Prefect tasks |
 
 ---
