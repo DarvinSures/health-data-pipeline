@@ -378,8 +378,12 @@ snow sql -q "SELECT COUNT(*) FROM HEALTH_DB_DEV.consumption.consumption_fhir_pat
 Check FHIR output:
 
 ```bash
-snow sql -q "SELECT id, full_name, gender, telecom, marital_status FROM HEALTH_DB_DEV.consumption.consumption_fhir_patient LIMIT 5;" --connection health-pipeline
+snow sql -q "SELECT id, full_name, birth_date, gender, address, telecom, marital_status, insurance_number, nationality FROM HEALTH_DB_DEV.consumption.consumption_fhir_patient LIMIT 5;" --connection health-pipeline
 ```
+
+You can also check this from Snowflake (Database explorer):
+<img width="1778" height="689" alt="image" src="https://github.com/user-attachments/assets/9011a950-4297-4311-9db9-ec3508201069" />
+
 
 ---
 ---
