@@ -1,0 +1,64 @@
+version: 2
+
+sources:
+  - name: raw
+    database: HEALTH_DB_DEV
+    schema: raw
+    tables:
+      - name: raw_raw_patient
+        description: >
+          Raw patient data loaded from Google Sheets.
+          Stored as JSON with metadata columns loaded_at and source_sheet_id.
+        columns:
+          - name: loaded_at
+            description: "Timestamp when the record was loaded"
+            tests:
+              - not_null:
+                  config:
+                    severity: error
+
+          - name: source_sheet_id
+            description: "Google Sheet ID the data was sourced from"
+            tests:
+              - not_null:
+                  config:
+                    severity: error
+
+          - name: raw_data
+            description: "Raw JSON payload from Google Sheets"
+            tests:
+              - not_null:
+                  config:
+                    severity: error
+              - json_key_not_null:
+                  key: first_name
+                  config:
+                    severity: error
+              - json_key_not_null:
+                  key: last_name
+                  config:
+                    severity: error
+              - json_key_not_null:
+                  key: gender
+                  config:
+                    severity: error
+              - json_key_not_null:
+                  key: birth_date
+                  config:
+                    severity: error
+              - json_key_not_null:
+                  key: phone_number
+                  config:
+                    severity: error
+              - json_key_not_null:
+                  key: email
+                  config:
+                    severity: error
+              - json_key_not_null:
+                  key: marital_status
+                  config:
+                    severity: error
+              - json_date_not_future:
+                  key: birth_date
+                  config:
+                    severity: error

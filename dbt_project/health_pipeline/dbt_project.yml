@@ -17,9 +17,9 @@ clean-targets:
 
 models:
   health_pipeline:
-    staging:
+    uat:
       +materialized: view
-      +schema: staging
+      +schema: uat
     consumption:
       +materialized: table
       +schema: consumption

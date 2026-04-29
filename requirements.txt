@@ -1,6 +1,4 @@
 google-cloud-storage
-psycopg2-binary
-sqlalchemy
 pandas
 dbt-core
 dbt-postgres
@@ -9,3 +7,4 @@ python-dotenv
 great-expectations
 gspread 
 google-auth
+snowflake-connector-python

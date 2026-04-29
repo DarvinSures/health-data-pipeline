@@ -2,11 +2,23 @@ health_pipeline:
   target: dev
   outputs:
     dev:
-      type: postgres
-      host: localhost
-      port: 5432
-      user: admin
-      password: admin123
-      dbname: health_db
+      type: snowflake
+      account: RMNCLDB-LX18932
+      user: darvinsures
+      password: EWxsEgFNdUFpUn6
+      role: SYSADMIN
+      warehouse: COMPUTE_WH
+      database: HEALTH_DB_DEV
+      schema: public
+      threads: 4
+
+    prod:
+      type: snowflake
+      account: RMNCLDB-LX18932
+      user: darvinsures
+      password: EWxsEgFNdUFpUn6
+      role: SYSADMIN
+      warehouse: COMPUTE_WH
+      database: HEALTH_DB_PROD
       schema: public
       threads: 4
