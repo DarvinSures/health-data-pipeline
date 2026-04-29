@@ -7,7 +7,7 @@ A production-grade ELT pipeline that ingests patient data from Google Sheets, tr
 ## Architecture
 
 ```
-[Google Sheets: Raw Patient Data CSV](https://docs.google.com/spreadsheets/d/1zZA8j-MR3osXR9-jgz9q-m3_sdrFDi72B4d3BBMTfrs/edit?usp=sharing)
+Google Sheets: Raw Patient Data CSV (https://hl7.org/fhir/R4/valueset-marital-status.html](https://docs.google.com/spreadsheets/d/1zZA8j-MR3osXR9-jgz9q-m3_sdrFDi72B4d3BBMTfrs/edit?usp=sharing)
      │
      ▼
 ┌─────────────────────────────────────────────────────┐
