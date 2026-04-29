@@ -397,26 +397,6 @@ snow sql -q "SELECT id, full_name, gender, telecom, marital_status FROM HEALTH_D
 ```
 
 ---
-
-## Promoting Dev to Prod
-
-Once dev has been validated:
-
-```bash
-python orchestration/promote_to_prod.py
-```
-
-This flow:
-1. Runs all dbt tests on dev — aborts if ERROR tests fail
-2. Copies data from dev to prod
-3. Runs dbt models on prod
-4. Runs dbt tests on prod
-
-Verify prod:
-```bash
-snow sql -q "SELECT COUNT(*) FROM HEALTH_DB_PROD.consumption.consumption_fhir_patient;" --connection health-pipeline
-```
-
 ---
 
 ## Scheduled Runs
@@ -428,7 +408,10 @@ Trigger a manual run:
 prefect deployment run 'health-data-pipeline/health-pipeline-deployment'
 ```
 
-Monitor runs at: [app.prefect.cloud](https://app.prefect.cloud)
+Monitor runs based on the link provided:
+<img width="811" height="571" alt="image" src="https://github.com/user-attachments/assets/58f2d64e-58b3-4175-ab3e-a2f76f31fdee" />
+
+
 
 ---
 
@@ -445,7 +428,3 @@ This project is designed with production-grade patterns. For a full production d
 | Data access control | Column masking + hashing | Immuta / AWS Lake Formation |
 
 ---
-
-## License
-
-MIT
