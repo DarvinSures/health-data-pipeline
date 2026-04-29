@@ -1,3 +1,10 @@
+'''
+    1. Extract data from google sheet using service account
+    2. Connect to Snowflake and load into RAW table
+    3. Log completed pipeline
+
+'''
+
 import gspread
 import pandas as pd
 import snowflake.connector

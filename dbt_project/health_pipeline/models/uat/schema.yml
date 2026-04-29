@@ -1,3 +1,4 @@
+# This yml file contains all the tests we will conduct for the uat schema
 version: 2
 
 models:
@@ -9,6 +10,7 @@ models:
     columns:
       - name: patient_id
         description: >
+          Primary key.
           Deterministic surrogate key — MD5 hash of first_name + last_name + birth_date.
           FHIR R4: Patient.id must be unique.
           Reference: https://hl7.org/fhir/R4/resource.html#id

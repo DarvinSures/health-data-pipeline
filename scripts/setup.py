@@ -1,6 +1,6 @@
 """
-Run this script once to set up the entire environment from scratch.
-Usage: python scripts/setup.py
+    1. Load environment variables from .env file and set them in the current session.
+    2. Persist environment variables to Windows user environment registry for future sessions.
 """
 
 import os
@@ -32,7 +32,7 @@ def load_env() -> dict:
     print("✓ Environment variables loaded")
     return env_vars
 
-
+# only needed if your system doesnt recognise env variables
 def persist_env_vars(env_vars: dict):
     """Persist environment variables to Windows user environment registry.
     Only needs to run once — vars will be available in all future terminal sessions.

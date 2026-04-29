@@ -1,3 +1,5 @@
+# This yml file defines all the tests we will conduct on RAW schema
+
 version: 2
 
 sources:
