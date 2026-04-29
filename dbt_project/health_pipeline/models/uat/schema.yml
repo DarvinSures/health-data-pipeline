@@ -1,0 +1,110 @@
+version: 2
+
+models:
+  - name: uat_patient
+    description: >
+      UAT layer — FHIR R4 Patient mapping and validation.
+      Extracts from raw JSON, applies FHIR R4 compliant transformations and tests.
+
+    columns:
+      - name: patient_id
+        description: >
+          Deterministic surrogate key — MD5 hash of first_name + last_name + birth_date.
+          FHIR R4: Patient.id must be unique.
+          Reference: https://hl7.org/fhir/R4/resource.html#id
+        tests:
+          - unique:
+              config:
+                severity: error
+          - not_null:
+              config:
+                severity: error
+
+      - name: gender
+        description: >
+          FHIR R4: Patient.gender — Required binding to AdministrativeGender valueset.
+          Valid values: male | female | other | unknown.
+          NULL means value was unmappable — triggers ERROR.
+          Reference: https://hl7.org/fhir/R4/valueset-administrative-gender.html
+        tests:
+          - not_null:
+              config:
+                severity: error
+          - accepted_values:
+              config:
+                severity: error
+              arguments:
+                values: ['male', 'female', 'other', 'unknown']
+
+      - name: birth_date
+        description: >
+          FHIR R4: Patient.birthDate — must be valid FHIR date type, not in future.
+          NULL is set for future/invalid dates — triggers ERROR test below.
+          Missing birth date is WARNING per 0..1 cardinality in spec.
+          Reference: https://hl7.org/fhir/R4/patient-definitions.html#Patient.birthDate
+        tests:
+          - not_null:
+              config:
+                severity: warn
+
+      - name: telecom_phone
+        description: >
+          FHIR R4: Patient.telecom phone — ContactPoint JSON object.
+          Must be valid JSON structure — ERROR if null (invalid).
+          Reference: https://hl7.org/fhir/R4/patient-definitions.html#Patient.telecom
+        tests:
+          - not_null:
+              config:
+                severity: error
+
+      - name: telecom_email
+        description: >
+          FHIR R4: Patient.telecom email — ContactPoint JSON object.
+          Must be valid JSON structure — ERROR if null (invalid).
+          Reference: https://hl7.org/fhir/R4/patient-definitions.html#Patient.telecom
+        tests:
+          - not_null:
+              config:
+                severity: error
+
+      - name: phone_hash
+        description: >
+          FHIR R4: Patient.telecom phone value — hashed.
+          WARNING if missing per 0..* cardinality in spec.
+          Reference: https://hl7.org/fhir/R4/patient-definitions.html#Patient.telecom
+        tests:
+          - not_null:
+              config:
+                severity: warn
+
+      - name: email_hash
+        description: >
+          FHIR R4: Patient.telecom email value — hashed.
+          WARNING if missing per 0..* cardinality in spec.
+          Reference: https://hl7.org/fhir/R4/patient-definitions.html#Patient.telecom
+        tests:
+          - not_null:
+              config:
+                severity: warn
+
+      - name: marital_status_code
+        description: >
+          FHIR R4: Patient.maritalStatus — Extensible binding to v3-MaritalStatus.
+          Normalised and mapped to standard codes: M, S, D, W, UNK.
+          WARNING severity per Extensible binding rules — custom extensions allowed.
+          Reference: https://hl7.org/fhir/R4/valueset-marital-status.html
+        tests:
+          - accepted_values:
+              config:
+                severity: warn
+              arguments:
+                values: ['M', 'S', 'D', 'W', 'UNK']
+
+      - name: insurance_number_hash
+        description: >
+          Hashed insurance number — pipeline business rule.
+          WARNING if missing.
+        tests:
+          - not_null:
+              config:
+                severity: warn

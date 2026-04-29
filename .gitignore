@@ -4,7 +4,9 @@ credentials/
 dbt_project/target/
 dbt_project/dbt_packages/
 dbt_project/logs/
+dbt_project/health_pipeline/profiles.yml
 __pycache__/
 *.pyc
 .DS_Store
 prefect.yaml
+logs/
