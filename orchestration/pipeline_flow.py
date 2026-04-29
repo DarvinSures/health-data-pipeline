@@ -1,11 +1,17 @@
+'''
+   1. Load environment variables from .env file and Lint.
+   2. Ingest data from Google Sheet to Snowflake raw layer.
+   3. Run dbt models to transform data from raw → uat → consumption layers
+    4. Run dbt tests to validate data quality and FHIR alignment.
+
+'''
+
 import subprocess
 import sys
 from pathlib import Path
 from prefect import flow, task
 from prefect.logging import get_run_logger
 from dotenv import load_dotenv
-
-# load env → lint SQL → ingest → dbt run → dbt test
 
 load_dotenv()
 

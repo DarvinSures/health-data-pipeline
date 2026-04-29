@@ -1,3 +1,9 @@
+{{ config(materialized='table') }}
+
+/*
+    refers to RAW table, does transformation (hashing, deterministic ID creation) and mapping
+*/
+
 WITH source AS (
     SELECT * FROM {{ source('raw', 'raw_raw_patient') }}
 ),
@@ -24,8 +30,10 @@ extracted AS (
             || coalesce(raw_data:birth_date::STRING, '')
         ) AS patient_id,
 
-        md5(coalesce(raw_data:first_name::STRING, '')) AS first_name_hash,
-        md5(coalesce(raw_data:last_name::STRING, '')) AS last_name_hash,
+        md5(
+            coalesce(raw_data:first_name::STRING, '') || ' '
+            || coalesce(raw_data:last_name::STRING, '')
+        ) AS full_name_hash,
 
         CASE
             WHEN lower(trim(raw_data:gender::STRING)) IN ('male', 'm')
@@ -59,8 +67,9 @@ extracted AS (
                 THEN 'W'
             ELSE 'UNK'
         END AS marital_status_code,
-        md5(coalesce(raw_data:phone_number::STRING, '')) AS phone_hash,
-        md5(coalesce(raw_data:email::STRING, '')) AS email_hash,
+
+        md5(coalesce(raw_data:address::STRING, '')) AS address_hash,
+
         object_construct(
             'system', 'phone',
             'value', md5(coalesce(raw_data:phone_number::STRING, '')),

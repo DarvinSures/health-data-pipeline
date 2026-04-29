@@ -1,0 +1,53 @@
+# This yml file defines the column constraints (only for dbt version above 1.5)
+
+version: 2
+
+models:
+  - name: consumption_fhir_patient
+    description: "Final FHIR-aligned patient table with secured/hashed identifiers."
+    config:
+      contract:
+        enforced: true
+    
+    columns:
+      - name: id
+        description: "Primary Key: MD5 hash of first name, last name, and birth date."
+        data_type: varchar(255)
+        constraints:
+          - type: primary_key
+          - type: not_null
+        tests:
+          - unique
+          - not_null
+
+      - name: full_name
+        description: "MD5 hash of the patient's full name."
+        data_type: varchar(200)
+
+      - name: birth_date
+        description: "Truncated birth year or full birth date if available."
+        data_type: date
+
+      - name: gender
+        description: "Standardized gender (male, female, other, unknown)."
+        data_type: varchar(20)
+
+      - name: address
+        description: "MD5 hash of the patient's address."
+        data_type: varchar(255)
+
+      - name: telecom
+        description: "JSON object containing hashed phone and email."
+        data_type: object # Use 'object' for Snowflake's semi-structured type
+
+      - name: marital_status
+        description: "Patient's marital status code."
+        data_type: varchar(20)
+
+      - name: insurance_number
+        description: "MD5 hash of the insurance identifier."
+        data_type: varchar(255)
+
+      - name: nationality
+        description: "Country of nationality."
+        data_type: varchar(20)

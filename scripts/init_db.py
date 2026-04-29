@@ -1,3 +1,12 @@
+'''
+    1. Create database and schemas for both dev and prod environments.
+    2. Create raw table in the raw schema with 3 columns: loaded_at,
+         source_sheet_id, raw_data.
+    3. Use environment variables for database credentials and names.
+
+'''
+
+
 import snowflake.connector
 from dotenv import load_dotenv
 import os

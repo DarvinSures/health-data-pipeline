@@ -1,3 +1,8 @@
+/* 
+    Basically creates the database, schemas and tables we need if its not already been created.
+    Adds successful log message
+*/
+
 {% macro create_schemas() %}
     {% set sql %}
         CREATE DATABASE IF NOT EXISTS {{ target.database }};
