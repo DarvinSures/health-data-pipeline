@@ -7,7 +7,7 @@ A production-grade ELT pipeline that ingests patient data from Google Sheets, tr
 ## Architecture
 
 ```
-Google Sheets
+Google Sheets (The csv file has been uploaded here -> https://docs.google.com/spreadsheets/d/1zZA8j-MR3osXR9-jgz9q-m3_sdrFDi72B4d3BBMTfrs/edit?usp=sharing)
      │
      ▼
 ┌─────────────────────────────────────────────────────┐
