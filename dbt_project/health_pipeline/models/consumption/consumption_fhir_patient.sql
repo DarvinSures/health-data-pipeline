@@ -4,18 +4,18 @@ WITH uat AS (
 
 fhir AS (
     SELECT
-        patient_id                                          AS id,
-        '****'                                              AS full_name,
-        birth_year                                          AS birth_date,
+        patient_id AS id,
+        '****' AS full_name,
+        birth_year AS birth_date,
         gender,
-        '****'                                              AS address,
-        array_construct(telecom_phone, telecom_email)       AS telecom,
-        marital_status_code                                 AS marital_status,
-        insurance_number_hash                               AS insurance_number,
+        '****' AS address,
+        marital_status_code AS marital_status,
+        insurance_number_hash AS insurance_number,
         nationality,
         blood_type,
         allergies,
-        last_visit_date
+        last_visit_date,
+        array_construct(telecom_phone, telecom_email) AS telecom
     FROM uat
 
     -- if you only wanted rows that pass the test.

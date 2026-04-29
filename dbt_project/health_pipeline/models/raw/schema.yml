@@ -58,7 +58,3 @@ sources:
                   key: marital_status
                   config:
                     severity: error
-              - json_date_not_future:
-                  key: birth_date
-                  config:
-                    severity: error

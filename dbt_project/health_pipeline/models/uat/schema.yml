@@ -36,17 +36,6 @@ models:
               arguments:
                 values: ['male', 'female', 'other', 'unknown']
 
-      - name: birth_date
-        description: >
-          FHIR R4: Patient.birthDate — must be valid FHIR date type, not in future.
-          NULL is set for future/invalid dates — triggers ERROR test below.
-          Missing birth date is WARNING per 0..1 cardinality in spec.
-          Reference: https://hl7.org/fhir/R4/patient-definitions.html#Patient.birthDate
-        tests:
-          - not_null:
-              config:
-                severity: warn
-
       - name: telecom_phone
         description: >
           FHIR R4: Patient.telecom phone — ContactPoint JSON object.
@@ -108,3 +97,18 @@ models:
           - not_null:
               config:
                 severity: warn
+
+      - name: birth_date
+        description: >
+          FHIR R4: Patient.birthDate — must be valid FHIR date type, not in future.
+          NULL is set for future/invalid dates — triggers ERROR test below.
+          Missing birth date is WARNING per 0..1 cardinality in spec.
+          Reference: https://hl7.org/fhir/R4/patient-definitions.html#Patient.birthDate
+        tests:
+          - not_null:
+              config:
+                severity: warn
+          - dbt_utils.expression_is_true:
+              expression: "<= current_date()"
+              config:
+                severity: error
