@@ -24,6 +24,12 @@ extracted AS (
 
         raw_data:preferred_language::STRING AS preferred_language,
 
+        raw_data:address::STRING                AS address,
+        raw_data:zip_code::STRING               AS zip_code,
+        raw_data:emergency_contact_name::STRING AS emergency_contact_name,
+        raw_data:emergency_contact_phone::STRING AS emergency_contact_phone,
+        raw_data:insurance_provider::STRING     AS insurance_provider,
+
         md5(
             coalesce(raw_data:first_name::STRING, '')
             || coalesce(raw_data:last_name::STRING, '')
