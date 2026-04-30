@@ -311,7 +311,7 @@ python scripts/setup.py
 This single command:
 1. Loads environment variables
 2. Installs all Python dependencies
-3. Creates Snowflake databases and schemas (`HEALTH_DB_DEV` and `HEALTH_DB_PROD`)
+3. Creates Snowflake databases and schemas (`HEALTH_DB_DEV` and `HEALTH_DB_PROD`) # Prod DB not used in this exercise
 4. Installs dbt packages
 
 ---
