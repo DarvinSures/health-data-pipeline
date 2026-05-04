@@ -31,11 +31,12 @@ fhir AS (
         insurance_number_hash::VARCHAR(255) AS insurance_number,
 
         nationality::VARCHAR(20) AS nationality,
-
-        object_construct(
-            'phone', telecom_phone,
-            'email', telecom_email
+ 
+        array_construct(
+            telecom_phone,
+            telecom_email
         ) AS telecom
+
     FROM uat
 )
 
