@@ -1,17 +1,28 @@
 """
-    1. Load environment variables from .env file and set them in the current session.
-    2. Persist environment variables to Windows user environment registry for future sessions.
+Run this script once to set up the entire environment from scratch.
+Works on Windows and Mac.
+Usage: python scripts/setup.py
 """
 
 import os
 import subprocess
 import sys
-import winreg
+import shutil
 from pathlib import Path
 
 ROOT_DIR = Path(__file__).parent.parent
 DBT_DIR = ROOT_DIR / "dbt_project" / "health_pipeline"
-DBT_EXECUTABLE = r"C:\Users\Darvin\miniconda3\envs\health-pipeline\Scripts\dbt.EXE"
+
+
+def get_executable(name: str) -> str:
+    """Get the full path to an executable in the current Python environment."""
+    executable = shutil.which(name)
+    if not executable:
+        raise FileNotFoundError(
+            f"'{name}' not found in current environment. "
+            f"Make sure you have activated the correct conda environment."
+        )
+    return executable
 
 
 def load_env() -> dict:
@@ -31,32 +42,6 @@ def load_env() -> dict:
 
     print("✓ Environment variables loaded")
     return env_vars
-
-# only needed if your system doesnt recognise env variables
-def persist_env_vars(env_vars: dict):
-    """Persist environment variables to Windows user environment registry.
-    Only needs to run once — vars will be available in all future terminal sessions.
-    """
-    env_keys = [
-        'SNOWFLAKE_ACCOUNT', 'SNOWFLAKE_USER', 'SNOWFLAKE_PASSWORD',
-        'SNOWFLAKE_ROLE', 'SNOWFLAKE_WAREHOUSE', 'SNOWFLAKE_DATABASE_DEV',
-        'SNOWFLAKE_DATABASE_PROD', 'GOOGLE_SHEET_NAME', 'GCP_SERVICE_ACCOUNT_PATH'
-    ]
-
-    key = winreg.OpenKey(
-        winreg.HKEY_CURRENT_USER,
-        'Environment',
-        0,
-        winreg.KEY_SET_VALUE
-    )
-
-    for env_key in env_keys:
-        if env_key in env_vars:
-            winreg.SetValueEx(key, env_key, 0, winreg.REG_SZ, env_vars[env_key])
-
-    winreg.CloseKey(key)
-    print("✓ Environment variables persisted to user environment")
-    print("  Open a new terminal after setup for changes to take effect")
 
 
 def run_command(command, cwd=None, description="", env=None):
@@ -85,10 +70,7 @@ def main():
     # Step 1 — Load env vars
     env_vars = load_env()
 
-    # Step 2 — Persist env vars to Windows user environment
-    persist_env_vars(env_vars)
-
-    # Step 3 — Install dependencies
+    # Step 2 — Install dependencies
     run_command(
         [sys.executable, "-m", "pip", "install", "-r", str(ROOT_DIR / "requirements.txt")],
         cwd=ROOT_DIR,
@@ -96,7 +78,7 @@ def main():
         env=env_vars
     )
 
-    # Step 4 — Initialise Snowflake databases and schemas
+    # Step 3 — Initialise Snowflake databases and schemas
     run_command(
         [sys.executable, str(ROOT_DIR / "scripts" / "init_db.py")],
         cwd=ROOT_DIR,
@@ -104,16 +86,17 @@ def main():
         env=env_vars
     )
 
-    # Step 5 — Install dbt packages
+    # Step 4 — Install dbt packages
+    dbt_executable = get_executable('dbt')
     run_command(
-        [DBT_EXECUTABLE, "deps"],
+        [dbt_executable, "deps"],
         cwd=DBT_DIR,
         description="Installing dbt packages",
         env=env_vars
     )
 
     print("\n" + "=" * 50)
-    print("Setup complete! Open a new terminal then run:")
+    print("Setup complete! Run the pipeline with:")
     print("  python ingestion/load_data.py dev")
     print("  cd dbt_project/health_pipeline")
     print("  dbt run --target dev")

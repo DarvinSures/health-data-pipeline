@@ -2,12 +2,13 @@
    1. Load environment variables from .env file and Lint.
    2. Ingest data from Google Sheet to Snowflake raw layer.
    3. Run dbt models to transform data from raw → uat → consumption layers
-    4. Run dbt tests to validate data quality and FHIR alignment.
-
+   4. Run dbt tests to validate data quality and FHIR alignment.
 '''
 
+import os
 import subprocess
 import sys
+import shutil
 from pathlib import Path
 from prefect import flow, task
 from prefect.logging import get_run_logger
@@ -17,8 +18,17 @@ load_dotenv()
 
 ROOT_DIR = Path(__file__).parent.parent
 DBT_DIR = ROOT_DIR / "dbt_project" / "health_pipeline"
-DBT_EXECUTABLE = r"C:\Users\Darvin\miniconda3\envs\health-pipeline\Scripts\dbt.EXE"
-SQLFLUFF_EXECUTABLE = r"C:\Users\Darvin\miniconda3\envs\health-pipeline\Scripts\sqlfluff.EXE"
+
+
+def get_executable(name: str) -> str:
+    """Get the full path to an executable cross-platform."""
+    executable = shutil.which(name)
+    if not executable:
+        raise FileNotFoundError(
+            f"'{name}' not found in current environment. "
+            f"Make sure you have activated the correct conda environment."
+        )
+    return executable
 
 
 @task(name="load_env_vars")
@@ -32,7 +42,6 @@ def load_env_vars():
             line = line.strip()
             if line and not line.startswith('#') and '=' in line:
                 key, value = line.split('=', 1)
-                import os
                 os.environ[key.strip()] = value.strip()
 
     logger.info("Environment variables loaded")
@@ -44,8 +53,10 @@ def lint_sql():
     logger = get_run_logger()
     logger.info("Running SQLFluff linting...")
 
+    sqlfluff = get_executable('sqlfluff')
+
     result = subprocess.run(
-        [SQLFLUFF_EXECUTABLE, "lint", "models/", "--dialect", "snowflake"],
+        [sqlfluff, "lint", "models/", "--dialect", "snowflake"],
         capture_output=True,
         text=True,
         cwd=DBT_DIR
@@ -88,8 +99,10 @@ def run_dbt():
     logger = get_run_logger()
     logger.info("Running dbt models...")
 
+    dbt = get_executable('dbt')
+
     result = subprocess.run(
-        [DBT_EXECUTABLE, "run", "--target", "dev"],
+        [dbt, "run", "--target", "dev"],
         capture_output=True,
         text=True,
         cwd=DBT_DIR
@@ -110,8 +123,10 @@ def run_dbt_tests():
     logger = get_run_logger()
     logger.info("Running dbt tests...")
 
+    dbt = get_executable('dbt')
+
     result = subprocess.run(
-        [DBT_EXECUTABLE, "test", "--target", "dev"],
+        [dbt, "test", "--target", "dev"],
         capture_output=True,
         text=True,
         cwd=DBT_DIR

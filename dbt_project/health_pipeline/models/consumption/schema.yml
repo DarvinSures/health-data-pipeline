@@ -38,7 +38,7 @@ models:
 
       - name: telecom
         description: "JSON object containing hashed phone and email."
-        data_type: object # Use 'object' for Snowflake's semi-structured type
+        data_type: array # Use 'object' for Snowflake's semi-structured type
 
       - name: marital_status
         description: "Patient's marital status code."
